@@ -1,0 +1,59 @@
+{
+    "guidelines": [
+      {
+        "id": "G2",
+        "relevant_text": "Label walkers and riders of small devices (kick scooters, electric kick scooters, segways, skateboards) as pedestrians.",
+        "description": "People who are walking or riding kick scooters (including electric kick scooters), segways, skateboards, etc. **are labeled as pedestrians.**",
+        "priority": 1
+      },
+      {
+        "id": "G3",
+        "relevant_text": "Exclude people inside vehicles, **except** those standing on car/truck roofs or flatbeds.",
+        "description": "People inside other vehicles are not labeled, **except** for people standing on the top of cars/trucks or standing on flatbeds of trucks.",
+        "priority": 1
+      },
+      {
+        "id": "G4",
+        "relevant_text": "Label a person **riding a bicycle** as a cyclist, **not** a pedestrian. Don't include it if asked to detect pedestrians.",
+        "description": "A person **riding** a bicycle should not be masked. Only a person **pushing** a bicycle is masked as a pedestrian.",
+        "priority": 1
+      },
+      {
+        "id": "G5",
+        "relevant_text": "**Exclude** mannequins, statues, dummies, covered objects, billboards, posters, indoor pedestrians, and reflections.",
+        "description": "Mannequins, statues, dummies, objects covered with cloth covers, billboards, posters, pedestrians inside buildings, or reflections of people are **not** labeled.",
+        "priority": 1
+      },
+      {
+        "id": "G6",
+        "relevant_text": "**Include** small items or child (< 2 m) with the pedestrian (umbrella, handbag, sign, backpack).",
+        "description": "If the pedestrian is holding a small child or carrying small items (smaller than 2m in size such as umbrella, handbag, sign, backpack, etc.), **include** them.",
+        "priority": 1
+      },
+      {
+        "id": "G7",
+        "relevant_text": "**Include** small mobility devices (kick scooter, electric scooter, segway, skateboard).",
+        "description": "If the pedestrian is **riding** a kick scooter (including electric kick scooter), a segway, a skateboard, etc., **include** the device in the mask.",
+        "priority": 1
+      },
+      {
+        "id": "G8",
+        "relevant_text": "**Exclude** large objects (> 2 m) or pushed items (bike, shopping cart, etc.) from the pedestrian mask.",
+        "description": "Only exclude **large objects (greater than 2 m) or pushed items (bike, shopping cart, etc.)** from the pedestrian mask. Do not exclude small items (e.g. umbrella, handbag, sign, backpack) from the pedestrian mask.",
+        "priority": 1
+      },
+      {
+        "id": "G9",
+        "relevant_text": "For a pedestrian pushing a stroller with a child, use separate masks; do not include the stroller in the child mask.",
+        "description": "If the pedestrian is pushing a stroller with a child in it, separate masks are created for the pedestrian and the child. The stroller is **not** included in the child mask.",
+        "priority": 1
+      },
+      {
+        "id": "G10",
+        "relevant_text": "Label overlapping pedestrians separately; bounding boxes may overlap.",
+        "description": "If pedestrians overlap each other, they are labeled as separate objects. If they overlap then the bounding boxes can overlap as well.",
+        "priority": 1
+      }
+    ]
+  }
+  

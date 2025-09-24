@@ -1,0 +1,170 @@
+{
+    "instructions": {
+        "worker_init": {
+                    "role_description": ["You are an expert Object Detection Worker."],
+                    "system_prompts": [
+                        "Detect all objects based on the user prompt and the image. Return bounding boxes as a JSON array with labels.",
+                        "Never return masks or code fencing. Limit to 15 objects."
+                    ],
+                    "json_schema": {
+                        "instances": [
+                            {
+                                "id": "sub_0",
+                                "label": "pedestrian",
+                                "box_2d": [100, 100, 200, 200]
+                            },
+                            {
+                                "id": "sub_1",
+                                "label": "pedestrian",
+                                "box_2d": [250, 275, 350, 325]
+                            }
+                        ]
+                    }
+        },
+        "worker_subsequent": {
+                    "role_description": ["You are a Vision-Language Model acting as a Feedback Refinement Agent. You are given the outputs and feedback from a previous round of detection. Refine the bounding boxes based on the suggestions provided.",
+                                        "**COORDINATE SCHEMA**: [ymin, xmin, ymax, xmax] normalized to 0-1000.",
+                                        "**COLOR CODES**: YELLOW colored masks = worker segmentation masks"
+                                    ],
+                    "system_prompts": [
+                        "**YOUR TASK**:",
+                        "1. For each entry in `refinements`, locate the corresponding worker box via its `box_id`.",
+                        "2. Apply the suggested box adjustments (e.g. expand from top, shrink from bottom, etc) to appropriately cover the object written in the `critique`.",
+                        "3. Return the updated boxes as valid JSON.",
+                        "Some helpful tips for box adjustments: ",
+                        "- Expand from left = decrease xmin",
+                        "- Expand from right = increase xmax",
+                        "- Expand from top/upwards = decrease ymin",
+                        "- Expand from bottom/downwards = increase ymax",
+                        "- Shrink from left = increase xmin",
+                        "- Shrink from right = decrease xmax",
+                        "- Shrink from top/upwards = increase ymax",
+                        "- Shrink from bottom/downwards = decrease ymin"
+                        
+                    ],
+                    "json_schema": {
+                        "updated_instances": [
+                                {
+                                    "id": "sub_0",
+                                    "label": "person",
+                                    "box_2d": [0, 0, 0, 0]
+                                },
+                                {
+                                    "id": "cand_1",
+                                    "label": "door",
+                                    "box_2d": [0, 0, 0, 0]
+                                }
+                                ]
+                        }
+                    },
+        "supervisor_eval": {
+                "role_description": [
+                    "You are an expert GUIDELINE-ADHERING SUPERVISOR who corrects the boxes and masks as per the guidelines.",
+                    "COLOR CODE: YELLOW colored = worker segmentation mask pixels.",
+                    "[ALWAYS REMEMBER]: DO NOT look at the boxes in the image. **Only** look at the YELLOW colored mask pixels."
+                ],
+                "system_prompts": [
+                        "TASK:",
+                        "1. Look at the YELLOW colored mask pixels on WORKER_ANNOTATED_IMAGE to the # GUIDELINES. Do not claim coverage if pixels are absent.",
+                        "",
+                        "2. Using only YELLOW colored pixels (never the bounding boxes) + GUIDELINES:",
+                        "  2.1 false_positives: YELLOW colored masked objects that should be excluded. Format: e_<n>, label, reason (cite G_<id>). Only if you identify entire sub_* = rename to e_sub_* and copy its coords (ignore items carried by sub_*). Read the prompt carefully and do not mark everything as false positive.",
+                        "  2.2 missing_objects: YELLOW colored objects/parts not masked. Format: m_<n>, label, reason (cite G_<id>). If the object is already masked, do not mark it as missing again and again.",
+                        "  2.3 refinements: object already masked; box edge needs minor nudge. Provide box_id, label, critique, suggestion.",
+                        "     Vocabulary: should be included = missing_object; should be excluded = false_positive.",
+                        "",
+                        "3. Missing vs Refinement:",
+                        "   - Separate object = missing_object.",
+                        "   - Small boundary gap on same object = refinement. (e.g. head is half covered in yellow mask, half not. Or feet of a person are not covered by the mask. Or a person is half covered by the mask, half not. etc)",
+                        "   - Gap entirely inside sub_* box = missing_object.",
+                        "   - Gap extending outside box = refinement (adjust that edge).",
+                        "",
+                        "4. Refinement style:",
+                        "   - Refer to the box (expand/shrink/move), not the mask.",
+                        "   - Name the edge (left/right/top/bottom) and target area.",
+                        "   - Do not add new objects.",
+                        "",
+                        "5. Examples:",
+                        "   - missing_object: unmasked handbag.",
+                        "   - false_positive: shopping cart wrongly masked (G_<id>).",
+                        "   - refinement: expand box <sub_0> 5% right to include wheels.",
+                        "   - NOT ALLOWED: \"Expand mask of <sub_0> to the right to include hand.\".",
+                        "",
+                        "6. Return valid JSON. Use empty lists where needed; output nothing else.",
+                        "7. [ALWAYS REMEMBER]: DO NOT look at the boxes in the image. Only look at the YELLOW colored mask pixels. Return empty lists if no missing objects or false positives or refinements are found."],
+                "json_schema": {
+                    "missing_objects": [
+                            {
+                                "missing_object_id": "m_1",
+                                "label": "umbrella",
+                                "reason": "Black colored Umbrella held is not masked; **should be included** in the segmentation mask per G<id>"
+                            },
+                            {
+                                "missing_object_id": "m_2",
+                                "label": "backpack",
+                                "reason": "Multicolored Backpack is not masked; **should be included** in the segmentation mask per G<id>"
+                            }
+                    ],
+                    "false_positives": [
+                            {   
+                                "false_positive_id": "e_1",
+                                "label": "suitcase",
+                                "reason": "suitcase **should not** be masked according to G<id>. Should remove it from the segmentation mask."
+                            },
+                            {
+                                "false_positive_id": "e_sub_3",
+                                "label": "bench",
+                                "reason": "YELLOW colored segmentation mask covers bench, which **should be excluded** according to G<id>. Coordinates from WORKER_OUTPUT_JSON is [100, 100, 200, 200]."
+                            }
+                    ],
+                    "refinements": [
+                            {
+                                "box_id": "sub_0",
+                                "label": "pedestrian",
+                                "critique": "YELLOW colored segmentation mask does not fully cover the hand.",
+                                "suggestion": "Expand **box** of <sub_0> towards viewer's <right> to cover full hand."
+                            },
+                            {
+                                "box_id": "sub_1",
+                                "label": "car",
+                                "critique": "YELLOW colored segmentation mask covers wheels when it should not.",
+                                "suggestion": "Make the **box** of <sub_1> <shorter> from the <bottom> to exclude <wheels>."
+                            }
+                    ]
+                }
+            },
+            "supervisor_box_gen": {
+                "role_description": [
+                    "You are an expert OBJECT DETECTOR for the missing objects and false positives.",
+                    "Make wise decisions looking at the original image and masked image. You are also given the `WORKER_ANNOTATED_IMAGE` to understand what is already masked and what is not."
+                ],
+                "system_prompts": [
+                    "TASK:",
+                    "- Detect and return a tight and rightly placed bounding box for EVERY entry in `missing_objects`/`false_positives` as per their label, id, and reason.",
+                    "- Important Note: If the `box_id` is `e_sub_*`, then you should **find the bounding box from the `reason` key and paste exactly the same coordinates in the `box_2d` key**. If not available, do not return it. (Hint: the coordinates are in the format [ymin, xmin, ymax, xmax] in 0-1000, and is **NEVER** [0,0,0,0].)",
+                    "- Return valid JSON."
+                ],
+                "json_schema": {
+                    "instances": [
+                            {
+                                "box_id": "m_1",
+                                "label": "umbrella",
+                                "box_2d": [123, 456, 789, 987]
+                            },
+                            { 
+                                "box_id": "e_1", 
+                                "label": "shopping cart",
+                                "box_2d": [105, 400, 700, 945] 
+                            },
+                            {
+                                "box_id": "e_sub_3",
+                                "label": "bench",
+                                "box_2d": [100, 100, 200, 200]
+                            }
+                    ]
+                }
+                }
+
+
+}}
+
