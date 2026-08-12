@@ -42,7 +42,7 @@ sam.build_model(sam_type="sam2.1_hiera_large", device=f"cuda:{SAM_GPU}")
 from google import genai
 from google.genai import types
 client = genai.Client(api_key='your_api_key')
-model = 'gemini-2.5-flash-preview-05-20'
+model = 'gemini-2.5-flash'
 print("model: ", model)
 
 
