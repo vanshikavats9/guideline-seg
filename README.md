@@ -34,6 +34,17 @@ You would need to put in your own Gemini keys in ```main_waymo.py``` or ```main_
 client = genai.Client(api_key='your_api_key')
 ```
 ---
+### Model weights
+
+| Model | Used for |
+|---|---|
+| `sam2.1_hiera_large` | masks, fetched from the SAM 2 release URL |
+| `google/gemma-3-4b-it` | crop captions that form the retrieval query (Huggingface gated repo) |
+| `google/owlv2-base-patch16-ensemble` | zoom-crop proposal |
+| `google/siglip-base-patch16-224` | validator gate on supervisor candidates |
+| `all-MiniLM-L6-v2` | guideline embeddings |
+
+---
 
 ## Run
 
