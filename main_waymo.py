@@ -22,7 +22,7 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import ImageColor
 import torch, gc
 import glob, os, shutil
-from src_new.utils.helper import get_annotated_image
+from src.utils.helper import get_annotated_image
 torch.cuda.empty_cache()
 gc.collect()
 from pathlib import Path
