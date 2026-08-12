@@ -20,8 +20,8 @@ Datasets:
 ## Setup
 
 ```bash
-conda create -n guideline-seg python=3.11 
-conda activate guideline-seg
+conda create -n guideseg python=3.11 
+conda activate guideseg
 pip install -r requirements.txt
 ```
 Currently split on RTX 3x3080 GPUs. Can also work on a single more powerful one.
